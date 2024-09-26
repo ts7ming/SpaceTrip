@@ -1,8 +1,4 @@
 ### 一些脑洞
 
-- 000_look_stars: 看星星, pygame模拟万有引力
-  - wasd可以移动视角
-  - r 自动移动视角 (跟随宇宙质心)
-  - 空格可以强制缩短距离
-  - 左键点击在鼠标处创造一颗星球
-  - 右键点击摧毁鼠标附近的一颗星球
+- [000_look_stars](000_look_stars/readme.md): pygame模拟万有引力
+- [001_sudoku](001_sudoku/readme.md): 数独可视化

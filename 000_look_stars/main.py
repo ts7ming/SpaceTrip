@@ -4,9 +4,9 @@ import pygame
 from rule import Space
 
 # 窗口大小
-screen_x = 1920
-screen_y = 1080
-fullscreen = True
+screen_x = 800
+screen_y = 600
+fullscreen = False
 
 # 初始星球数
 N_STARS = 5
