@@ -1,64 +1,26 @@
-import sys
 import pygame
 import sudokum
 
-sys.path.append('.')
-from pygamelib import Button
-
-input_sudo = sudokum.generate(mask_rate=0.6)
-
-# input_sudo = [
-#     [0, 0, 0, 0, 8, 0, 5, 0, 0],
-#     [6, 0, 0, 0, 0, 0, 0, 1, 7],
-#     [0, 5, 0, 4, 1, 0, 0, 0, 0],
-#     [0, 9, 0, 7, 0, 1, 0, 0, 0],
-#     [0, 4, 1, 5, 0, 0, 0, 0, 2],
-#     [0, 0, 6, 0, 0, 4, 0, 0, 0],
-#     [0, 0, 0, 3, 0, 5, 9, 0, 0],
-#     [0, 3, 0, 0, 0, 0, 6, 2, 0],
-#     [0, 2, 0, 0, 0, 6, 0, 0, 0]
-# ]
-
-# input_sudo = [
-#     [3, 5, 7, 0, 4, 2, 1, 0, 0],
-# [1, 0, 0, 5, 0, 0, 0, 0, 7],
-# [8, 0, 4, 0, 7, 1, 2, 0, 3],
-# [6, 3, 0, 7, 0, 4, 8, 2, 1],
-# [9, 0, 0, 2, 0, 8, 0, 0, 4],
-# [2, 4, 0, 1, 5, 6, 7, 0, 0],
-# [4, 6, 9, 8, 2, 0, 3, 1, 0],
-# [5, 0, 3, 0, 1, 9, 6, 0, 2],
-# [7, 0, 2, 0, 6, 0, 0, 0, 8],
-# ]
-
-for x in input_sudo:
-    print(x, ',')
-
-pos = {
-    'board': (50, 50),
-    'ctrl': (750, 50),
-    'msg': (850, 50),
-}
-
-size = {
-    'grid': 72,
-    'grid_line': 5,
-    'grid_line_light': 1,
-    'grid_margin': 6,
-    'cell_margin': 0,
-    'cell_radius_cfm': 28,
-    'cell_radius_draft': 13,
-    'font_cfm': 23,
-    'font_draft': 15
-}
-
-color = {
-    'bg': 'Honeydew',
-    'line': 'Black',
-    'msg': 'Black',
-}
-
-
+class Button:  
+    def __init__(self, x, y, width, height, text, color=(255, 255, 255)):  
+        self.rect = pygame.Rect(x, y, width, height)  
+        self.color = color  
+        self.text = text  
+        self.font = pygame.font.Font(None, 16)  
+        self.text_surface = self.font.render(self.text, True, (0, 0, 0))  
+  
+    def draw(self, screen):  
+        pygame.draw.rect(screen, self.color, self.rect)  
+        screen.blit(self.text_surface, (self.rect.left + (self.rect.width - self.text_surface.get_width()) // 2,  
+                                        self.rect.top + (self.rect.height - self.text_surface.get_height()) // 2))  
+  
+    def is_clicked(self, event):  
+        if event.type == pygame.MOUSEBUTTONDOWN:  
+            mouse_pos = event.pos  
+            if self.rect.collidepoint(mouse_pos):  
+                return True  
+        return False
+    
 class Cell:
     def __init__(self, x=None, y=None, text=None, cell_type=0):
         """
@@ -107,6 +69,8 @@ class Cell:
             self.cell_color = 'LightYellow'
         elif self.lock == 2:
             self.cell_color = 'LawnGreen'
+        elif self.lock == 3:
+            self.cell_color = 'Green'
         else:
             pass
         pygame.draw.rect(screen, self.cell_color, self.rect)
@@ -239,8 +203,19 @@ def search(bd):
 
     return 'Done', 0, 0
 
+def draft(bd):
+    for i in range(1, 10):
+        for j in range(1, 10):
+            if input_sudo[i - 1][j - 1] == 0:
+                bd[str(i) + str(j)] = [x for x in range(1, 10)]
+            else:
+                bd[str(i) + str(j)] = [input_sudo[i - 1][j - 1]]
 
 def update(bd):
+    global running
+    if running is False:
+        draft(bd)
+        running = True
     for ii in range(1, 10):
         for jj in range(1, 10):
             values = bd[str(ii) + str(jj)]
@@ -259,6 +234,59 @@ def update(bd):
         return search_msg, data
 
 
+
+def finish(bd):
+    if len(bd) == 0:
+        return False
+    std = {1,2,3,4,5,6,7,8,9}
+    for n in range(1, 10):
+        row = []
+        for ii in range(1,10):
+            row.append(bd[str(n)+str(ii)][0])
+        row = set(row)
+        if row != std:
+            return False
+        col = []
+        for ii in range(1,10):
+            col.append(bd[str(ii)+str(n)][0])
+        col = set(col)
+        if col != std:
+            return False
+
+    for ii in [1,4,7]:
+        for jj in [1,4,7]:
+            bc = {bd[str(iii)+str(jjj)][0] for iii in range(ii,ii+3) for jjj in range(jj,jj+3)} 
+            if bc != std:
+                return False
+    return True
+         
+
+board = {}
+running = False
+
+pos = {
+    'msg': (850, 50),
+}
+
+size = {
+    'grid': 72,
+    'grid_line': 5,
+    'grid_line_light': 1,
+    'grid_margin': 6,
+    'cell_margin': 0,
+    'cell_radius_cfm': 28,
+    'cell_radius_draft': 13,
+    'font_cfm': 23,
+    'font_draft': 15
+}
+
+color = {
+    'bg': 'Honeydew',
+    'line': 'Black',
+    'msg': 'Black',
+}
+
+
 screen_x = 1200
 screen_y = 800
 
@@ -268,14 +296,11 @@ clock = pygame.time.Clock()
 
 button_go = Button(750, 50, 80, 50, 'Go', 'SteelBlue')
 button_draft = Button(750, 110, 80, 50, 'AutoGo', 'SteelBlue')
+button_new = Button(750, 170, 80, 50, 'New', 'SteelBlue')
 
-board = {}
-for i in range(1, 10):
-    for j in range(1, 10):
-        if input_sudo[i - 1][j - 1] == 0:
-            board[str(i) + str(j)] = [x for x in range(1, 10)]
-        else:
-            board[str(i) + str(j)] = [input_sudo[i - 1][j - 1]]
+button_num = {i: Button(60*i, 5, 50, 50, str(i), 'GoldEnrod') for i in range(1,10)}
+button_num_cnt = {i:9 for i in range(1,10)}
+
 count = 0
 msg = ''
 data = [0, 0, 0, 0]
@@ -284,9 +309,7 @@ auto = False
 todo = True
 
 cell_matrix = {}
-for i in range(1, 10):
-    for j in range(1, 10):
-        cell_matrix[str(i) + str(j)] = Cell()
+
 
 cur_cell = ''
 rel_cells = []
@@ -297,24 +320,6 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-        elif pygame.key.get_pressed()[pygame.K_1] or pygame.key.get_pressed()[pygame.K_KP1]:
-            down_k = 1
-        elif pygame.key.get_pressed()[pygame.K_2] or pygame.key.get_pressed()[pygame.K_KP2]:
-            down_k = 2
-        elif pygame.key.get_pressed()[pygame.K_3] or pygame.key.get_pressed()[pygame.K_KP3]:
-            down_k = 3
-        elif pygame.key.get_pressed()[pygame.K_4] or pygame.key.get_pressed()[pygame.K_KP4]:
-            down_k = 4
-        elif pygame.key.get_pressed()[pygame.K_5] or pygame.key.get_pressed()[pygame.K_KP5]:
-            down_k = 5
-        elif pygame.key.get_pressed()[pygame.K_6] or pygame.key.get_pressed()[pygame.K_KP6]:
-            down_k = 6
-        elif pygame.key.get_pressed()[pygame.K_7] or pygame.key.get_pressed()[pygame.K_KP7]:
-            down_k = 7
-        elif pygame.key.get_pressed()[pygame.K_8] or pygame.key.get_pressed()[pygame.K_KP8]:
-            down_k = 8
-        elif pygame.key.get_pressed()[pygame.K_9] or pygame.key.get_pressed()[pygame.K_KP9]:
-            down_k = 9
         elif pygame.mouse.get_pressed():
             if button_draft.is_clicked(event):
                 auto = True if auto is False else False
@@ -325,9 +330,33 @@ while True:
                 todo = True
                 button_go.color = 'Lime'
                 break
+            elif button_new.is_clicked(event):
+                input_sudo = sudokum.generate(mask_rate=0.5)
+                button_new.color = 'Lime'
+                for i in range(1, 10):
+                    for j in range(1, 10):
+                        if input_sudo[i - 1][j - 1] == 0:
+                            board[str(i) + str(j)] = [0]
+                        else:
+                            board[str(i) + str(j)] = [input_sudo[i - 1][j - 1]]
+                for i in range(1, 10):
+                    for j in range(1, 10):
+                        cell_matrix[str(i) + str(j)] = Cell()
+                auto = False
+                todo = True
+                running = False
+
+                count = 0
+                msg = ''
+                data = [0, 0, 0, 0]
+                msg_display = []
+                auto = False
+                todo = True
             else:
                 pass
             for idx, cell in cell_matrix.items():
+                if cell.x is None:
+                    continue
                 if cell.is_clicked(event):
                     if idx == cur_cell:
                         cell.lock = 0
@@ -347,6 +376,10 @@ while True:
                     rel_cells = []
                     rel_value_cells = []
 
+                    if len(cell.text) == 1 and cell.text[0]=='':
+                        continue
+
+
                     for nn in range(1, 10):
                         rel_cells.append(str(nn) + str(idx)[1])
                         rel_cells.append(str(idx)[0] + str(nn))
@@ -362,12 +395,21 @@ while True:
                     for rel_idx in rel_value_cells:
                         cell_matrix[rel_idx].lock = 2
 
-        if down_k is not None:
-            if cur_cell == 0:
-                continue
-            else:
-                board[cur_cell] = [int(down_k)]
+            for n, bt in button_num.items():
+                if cur_cell == 0 and bt.is_clicked(event):
+                    board[cur_cell] = [int(down_k)]
 
+            if running:
+                button_num_cnt = {i:0 for i in range(1,10)}
+                for ii in range(1,10):
+                    for jj in range(1,10):
+                        v = board[str(ii)+str(jj)]
+                        if len(v)==1:
+                            vv = v[0]
+                            button_num_cnt[vv]+=1
+
+
+                
     if todo and (auto or go):
         msg, data = update(board)
         count += 1
@@ -381,6 +423,11 @@ while True:
     screen.fill(color['bg'])
     button_go.draw(screen)
     button_draft.draw(screen)
+    button_new.draw(screen)
+
+    for n, bt in button_num.items():
+        if button_num_cnt[n]>0:
+            bt.draw(screen)
 
     # # 画格子
     g_size = size['grid']
@@ -393,6 +440,8 @@ while True:
     cell_margin = size['cell_margin']
     for i in range(1, 10):
         for j in range(1, 10):
+            if str(i) + str(j) not in board:
+                continue
             v = board[str(i) + str(j)]
             cell = cell_matrix[str(i) + str(j)]
 
@@ -403,7 +452,10 @@ while True:
                     cell.cell_type = 0
                 cell.x = j * g_size + cell_margin
                 cell.y = i * g_size + cell_margin
-                cell.text = [str(v[0])]
+                if str(v[0]) == '0':
+                    cell.text = ['']
+                else:
+                    cell.text = [str(v[0])]
                 cell.draw(screen)
             else:
                 if i == data[2] and j == data[3]:
@@ -422,7 +474,15 @@ while True:
                 cell.text = display_v
                 cell.draw(screen)
 
-    # 概况信息
+
+
+
+
+    if finish(board):
+        for idx, cell in board.items():
+            cell_matrix[idx].lock = 3
+
+
     info_list = ['step:  ' + str(count), ''] + msg_display
     pi = pos['msg'][1]
     for info in info_list:
@@ -433,3 +493,4 @@ while True:
     pygame.display.flip()
     dt = clock.tick(30)
     button_go.color = 'SteelBlue'
+    button_new.color = 'SteelBlue'
