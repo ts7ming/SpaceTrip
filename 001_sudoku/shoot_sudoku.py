@@ -287,13 +287,13 @@ color = {
 }
 
 
-screen_x = 1200
+screen_x = 1000
 screen_y = 800
 
 pygame.init()
 screen = pygame.display.set_mode((screen_x, screen_y))
 clock = pygame.time.Clock()
-
+pygame.display.set_caption('MyShudoku')
 button_go = Button(750, 50, 80, 50, 'Go', 'SteelBlue')
 button_draft = Button(750, 110, 80, 50, 'AutoGo', 'SteelBlue')
 button_new = Button(750, 170, 80, 50, 'New', 'SteelBlue')
@@ -350,8 +350,6 @@ while True:
                 msg = ''
                 data = [0, 0, 0, 0]
                 msg_display = []
-                auto = False
-                todo = True
             else:
                 pass
             for idx, cell in cell_matrix.items():
@@ -396,8 +394,8 @@ while True:
                         cell_matrix[rel_idx].lock = 2
 
             for n, bt in button_num.items():
-                if cur_cell == 0 and bt.is_clicked(event):
-                    board[cur_cell] = [int(down_k)]
+                if cur_cell != 0 and bt.is_clicked(event):
+                    board[cur_cell] = [int(n)]
 
             if running:
                 button_num_cnt = {i:0 for i in range(1,10)}
