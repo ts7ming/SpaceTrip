@@ -3,30 +3,52 @@ from random import choice, randint
 
 
 
-class Pos:
-    def __init__(self, x=None, y=None):
-        self.x = x if x is not None else randint(0,World.map_size['x'])
-        self.y = y if y is not None else randint(0,World.map_size['y'])
-        self.gx = self.x
-        self.gy = self.y
-
-    def update(self, new_x, new_y):
-        self.x = new_x
-        self.y = new_y
-        self.gx = new_x
-        self.gy = new_y
-
+class Measure:
+    def __init__(self, k=None, v=None):
+        pass
+    
+    def set(self, k, v):
+        pass
 
 
 class Creature:
     def __init__(self):
-        self.pos = Pos() # 位置
-        self.search_distance = randint(100,500)  # 搜索距离
-        self.attack_distance = randint(0,50) # 攻击距离
-        self.Atk = randint(1,50) # 攻击力
-        self.Def = randint(1,50) # 防御力
-        self.Spd = randint(1,5) # 速度
-        self.Hp = randint(50,80) # 生命
+        self.__i = {}
+
+    def to_game(self):
+        pass
+
+    def __build(self):
+        self.__i = {
+            '位置': {'纵': randint(0,100), '横': randint(0,100)},
+            '视野': 10, # 默认视野大小
+            '攻击范围': 1,
+            '防御力': 2,
+            '行动速度': 1,
+            '攻击速度': 1,
+            '生命值': 100
+        }
+
+    def v(self, addr:str, value=None):
+        addr_idx = addr.split('$')
+        tmp = ''
+        res = self.__i.copy()
+        for a in addr_idx:
+            tmp += a +'$'
+            try:
+                res = res[a]
+            except:
+                return 0, tmp
+        if value is None:
+            return 1, res
+        else:
+            run = 'self.__i[' + addr.replace('$','][') + ']=value'
+            exec(run)
+            return 1, 'Done'
+
+
+    def soul(self, k=None, v=None):
+        pass
 
     def __move(self, dx, dy):
         self.pos.update(self.pos.x + dx, self.pos.y + dy)
@@ -85,9 +107,9 @@ class World:
             info = str(cnt)+'号生物(攻%s防%s):' % (str(obj.Atk), str(obj.Def))
             tg_obj = self.search(obj.pos, obj.search_distance)
             if tg_obj is None:
-                obj.wait() # 无所事事
+                # obj.wait() # 无所事事
                 print(info+'无所事事')
-            elif obj.Atk - tg_obj.Def > 0:# and tg_obj.Atk - obj.Def<2:
+            elif obj.Atk - tg_obj.Def > 3 and tg_obj.Atk - obj.Def<2:
                 if abs(obj.pos.x - tg_obj.pos.x)<= obj.attack_distance and abs(obj.pos.y - tg_obj.pos.y)<= obj.attack_distance:
                     obj.attack(tg_obj) # 攻击
                     print(info+'攻击')
@@ -98,7 +120,7 @@ class World:
                 obj.move_away(p=tg_obj.pos) # 躲避强敌
                 print(info+'躲避强敌')
             else:
-                obj.wait() # 无所事事
+                # obj.wait() # 无所事事
                 print(info+'无所事事')
             cnt+=1
             
@@ -115,7 +137,7 @@ clock = pygame.time.Clock()
 pygame.display.set_caption('Jungle')
 
 w = World()
-for _ in range(0,2):
+for _ in range(0,3):
     w.add_creature()
 
 while True:
