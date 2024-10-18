@@ -34,18 +34,6 @@ class Creature:
         self.g_px = self.v('位置$横') * 5
         self.g_py = self.v('位置$纵') * 5
 
-    def __build(self):
-        self.__i = {
-            '位置$纵': randint(0, 100),
-            '位置$横': randint(0, 100),
-            '视野': 10,  # 默认视野大小
-            '攻击范围': 1,
-            '防御力': 2,
-            '攻击力': 1,
-            '行动速度': 1,
-            '攻击速度': 1,
-            '生命值': 100
-        }
 
     def v(self, addr: str, value=None):
         if addr in self.__i:
@@ -141,20 +129,20 @@ class World:
                 obj.running = obj.move
                 param = {'dx': randint(-1, 1), 'dy': randint(-1, 1)}
                 print(info + '无所事事1')
-            elif obj.v('攻击力') - tg_obj.v('防御力') > 1:
+            elif obj.v('攻击力') - tg_obj.v('防御力') > 0:
                 dis = obj.distance(tg_obj)
                 if dis <= obj.v('攻击范围'):
                     obj.running = obj.attack  # 攻击
                     param = {'tg_obj': tg_obj}
-                    # print(info + '攻击')
+                    print(info + '攻击')
                 else:
                     obj.running = obj.move_to  # 追击猎物
                     param = {'tg_obj': tg_obj}
                     print(info + '追击猎物')
-            elif tg_obj.v('攻击力') - obj.v('防御力') > 1:
-                obj.running = obj.move_away  # 躲避强敌
-                param = {'tg_obj': tg_obj}
-                print(info + '躲避强敌')
+            # elif tg_obj.v('攻击力') - obj.v('防御力') > 1:
+            #     obj.running = obj.move_away  # 躲避强敌
+            #     param = {'tg_obj': tg_obj}
+            #     print(info + '躲避强敌')
             else:
                 obj.running = obj.move  # 无所事事
                 param = {'dx': randint(-1, 1), 'dy': randint(-1, 1)}
@@ -188,7 +176,8 @@ while True:
 
     for t_obj in w.objs:
         t_obj.game()
-        pygame.draw.circle(screen, 'LawnGreen', (t_obj.g_px, t_obj.g_py), 10)
+        hp = round(t_obj.v('生命值')/10,0)
+        pygame.draw.circle(screen, 'LawnGreen', (t_obj.g_px, t_obj.g_py), hp)
 
     w.run()
 
